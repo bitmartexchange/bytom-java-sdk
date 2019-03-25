@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 
 public class RawTransaction {
+    @SerializedName("tx_id")
+    public String txId;
     /**
      * version
      */
@@ -101,6 +103,9 @@ public class RawTransaction {
          * Possible values are "issue" and "spend".
          */
         private String type;
+
+        @SerializedName("input_id")
+        public String inputId;
     }
 
     public static class AnnotatedOutput {

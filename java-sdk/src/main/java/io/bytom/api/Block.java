@@ -173,40 +173,46 @@ public class Block {
         /**
          * Unique identifier, or transaction hash, of a transaction.
          */
-        private String id;
+        public String id;
 
         /**
          * version
          */
-        private Integer version;
+        public Integer version;
 
         /**
          * size
          */
-        private Integer size;
+        public Integer size;
         /**
          * time_range
          */
         @SerializedName("time_range")
-        private Integer timeRange;
+        public Integer timeRange;
 
         /**
          * status
          */
         @SerializedName("status_fail")
-        private boolean statusFail;
+        public boolean statusFail;
+
+        /**
+         * mux_id
+         */
+        @SerializedName("mux_id")
+        public boolean muxId;
 
         /**
          * List of specified inputs for a transaction.
          */
         @SerializedName("inputs")
-        private List<AnnotatedInput> inputs;
+        public List<AnnotatedInput> inputs;
 
         /**
          * List of specified outputs for a transaction.
          */
         @SerializedName("outputs")
-        private List<AnnotatedOutput> outputs;
+        public List<AnnotatedOutput> outputs;
     }
 
     public static class AnnotatedInput {
@@ -214,30 +220,44 @@ public class Block {
         /**
          * The number of units of the asset being issued or spent.
          */
-        private Integer amount;
+        public Integer amount;
 
         /**
          * inputs param
          */
-        private String arbitrary;
+        public String arbitrary;
 
         /**
          * The definition of the asset being issued or spent (possibly null).
          */
         @SerializedName("asset_definition")
-        private Map<String, Object> assetDefinition;
+        public Map<String, Object> assetDefinition;
 
         /**
          * The id of the asset being issued or spent.
          */
         @SerializedName("asset_id")
-        private String assetId;
+        public String assetId;
 
         /**
          * The type of the input.<br>
          * Possible values are "issue" and "spend".
          */
-        private String type;
+        public String type;
+
+        public String address;
+
+        @SerializedName("spent_output_id")
+        public String spentOutputId;
+
+        @SerializedName("input_id")
+        public String inputId;
+
+        @SerializedName("control_program")
+        public String controlProgram;
+
+        @SerializedName("witness_arguments")
+        public List<String> witnessArguments;
     }
 
     public static class AnnotatedOutput {
@@ -245,13 +265,13 @@ public class Block {
         /**
          * The number of units of the asset being controlled.
          */
-        private long amount;
+        public long amount;
 
         /**
          * The definition of the asset being controlled (possibly null).
          */
         @SerializedName("asset_definition")
-        private Map<String, Object> assetDefinition;
+        public Map<String, Object> assetDefinition;
 
         /**
          * The id of the asset being controlled.
@@ -263,25 +283,26 @@ public class Block {
          * The control program which must be satisfied to transfer this output.
          */
         @SerializedName("control_program")
-        private String controlProgram;
+        public String controlProgram;
 
         /**
          * The id of the output.
          */
         @SerializedName("id")
-        private String id;
+        public String id;
 
         /**
          * The output's position in a transaction's list of outputs.
          */
-        private Integer position;
+        public Integer position;
 
         /**
          * The type the output.<br>
          * Possible values are "control" and "retire".
          */
-        private String type;
+        public String type;
 
+        public String address;
     }
 
     public static class BlockHeader {
