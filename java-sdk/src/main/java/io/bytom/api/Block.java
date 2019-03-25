@@ -200,7 +200,7 @@ public class Block {
          * mux_id
          */
         @SerializedName("mux_id")
-        public boolean muxId;
+        public String muxId;
 
         /**
          * List of specified inputs for a transaction.
