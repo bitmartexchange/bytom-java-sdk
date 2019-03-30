@@ -6,8 +6,10 @@ import io.bytom.offline.exception.SerializeTransactionException;
 import io.bytom.offline.exception.SignTransactionException;
 import io.bytom.offline.types.*;
 import org.bouncycastle.util.encoders.Hex;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -43,14 +45,28 @@ public class Transaction {
      */
     private List<Output> outputs;
 
-    public Transaction(Builder builder) {
+    /**
+     * fee
+     */
+    private Integer fee;
+
+    /**
+     * changeControlProgram
+     */
+    private String changeControlProgram;
+
+    String btmAssetID = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+
+    public Transaction(Builder builder, String changeControlProgram) {
         this.inputs = builder.inputs;
         this.outputs = builder.outputs;
         this.version = builder.version;
         this.size = builder.size;
         this.timeRange = builder.timeRange;
+        this.changeControlProgram = changeControlProgram;
 
         this.validate();
+        this.estimateFee();
         this.mapTx();
         this.sign();
     }
@@ -65,6 +81,7 @@ public class Transaction {
 
         private List<BaseInput> inputs;
         private List<Output> outputs;
+
 
         public Builder() {
             this.inputs = new ArrayList<>();
@@ -86,8 +103,8 @@ public class Transaction {
             return this;
         }
 
-        public Transaction build() {
-            return new Transaction(this);
+        public Transaction build(String changeControlProgram) {
+            return new Transaction(this, changeControlProgram);
         }
     }
 
@@ -151,7 +168,7 @@ public class Transaction {
         try {
             for (int i = 0; i < inputs.size(); i++) {
                 BaseInput input = inputs.get(i);
-                InputEntry inputEntry =  input.toInputEntry(entryMap, i);
+                InputEntry inputEntry = input.toInputEntry(entryMap, i);
                 Hash spendID = addEntry(entryMap, inputEntry);
                 input.setInputID(spendID.toString());
 
@@ -205,6 +222,84 @@ public class Transaction {
         return id;
     }
 
+    private void estimateFee() {
+        Long inputAmount = 0L;
+        for (BaseInput input : inputs) {
+            if (input.getAssetId().equals(btmAssetID)) {
+                inputAmount += input.getAmount();
+            }
+        }
+
+        Long outputAmount = 0L;
+        for (Output output : outputs) {
+            if (output.getAssetId().equals(btmAssetID)) {
+                outputAmount += output.getAmount();
+            }
+        }
+
+        Long changeAmount = inputAmount - outputAmount;
+        Output changeOutput = new Output(btmAssetID, changeAmount, this.changeControlProgram);
+        this.outputs.add(changeOutput);
+
+        String rawTransaction = this.rawTransaction();
+
+        BigDecimal defaultBaseRate = new BigDecimal(100000);
+        Long flexibleGas = 1800L;
+        Long vmGasRate = 200L;
+        Long storageGasRate = 1L;
+
+        // baseTxSize
+        int baseTxSize = Hex.decode(rawTransaction).length;
+
+        // estimateSignSize
+        Long signSize = 0L;
+        Long baseWitnessSize = 300L;
+
+        for (BaseInput input : this.inputs) {
+            //signSize += int64(t.Quorum) * baseWitnessSize;
+            //t.Quorum = 1
+            signSize += baseWitnessSize;
+        }
+
+        Long totalTxSizeGas = storageGasRate * (baseTxSize + signSize);
+
+        Long totalP2WPKHGas = 0L;
+        Long totalP2WSHGas = 0L;
+        Long baseP2WPKHGas = 1419L;
+
+        for (BaseInput input : this.inputs) {
+            //if segwit.IsP2WPKHScript(resOut.ControlProgram.Code) {
+            //   totalP2WPKHGas += baseP2WPKHGas
+            //}
+            if (input.getProgram().length() == 44) {
+                totalP2WPKHGas += baseP2WPKHGas;
+            }
+            //TODO
+            //else if (input.getProgram().length() == 66) {
+            //totalP2WSHGas += estimateP2WSHGas(sigInst)
+            //}
+        }
+
+        // total estimate gas
+        Long totalGas = totalTxSizeGas + totalP2WPKHGas + totalP2WSHGas + flexibleGas;
+
+        // rounding totalNeu with base rate 100000
+        //totalNeu := float64(totalGas*consensus.VMGasRate) / defaultBaseRate
+        //roundingNeu := math.Ceil(totalNeu)
+        //estimateNeu := int64(roundingNeu) * int64(defaultBaseRate)
+        BigDecimal totalGasDecimal = new BigDecimal(totalGas * vmGasRate);
+        totalGasDecimal = totalGasDecimal.divide(defaultBaseRate);
+        totalGasDecimal = totalGasDecimal.setScale(0, BigDecimal.ROUND_UP);
+        totalGasDecimal = totalGasDecimal.multiply(defaultBaseRate);
+
+        this.fee = totalGasDecimal.intValue();
+        if (changeAmount - this.fee > 10000L) {
+            changeOutput.setAmount(changeAmount - this.fee);
+        } else {
+            this.outputs.remove(this.outputs.size()-1);
+        }
+    }
+
     public String getTxID() {
         return txID;
     }
@@ -227,5 +322,9 @@ public class Transaction {
 
     public List<Output> getOutputs() {
         return outputs;
+    }
+
+    public Integer getFee() {
+        return fee;
     }
 }
