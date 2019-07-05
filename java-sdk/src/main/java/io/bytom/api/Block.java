@@ -220,7 +220,7 @@ public class Block {
         /**
          * The number of units of the asset being issued or spent.
          */
-        public Integer amount;
+        public Long amount;
 
         /**
          * inputs param
