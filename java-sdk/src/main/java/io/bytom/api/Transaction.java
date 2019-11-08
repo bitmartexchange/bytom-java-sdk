@@ -45,7 +45,7 @@ public class Transaction {
      * Height of the block containing a transaction.
      */
     @SerializedName("block_height")
-    public int blockHeight;
+    public long blockHeight;
 
     /**
      * whether the state of the request has failed.
@@ -327,6 +327,9 @@ public class Transaction {
          */
         @SerializedName("spent_output_id")
         public String spentOutputId;
+
+        @SerializedName("input_id")
+        public String inputId;
 
         /**
          * The type of the input.<br>

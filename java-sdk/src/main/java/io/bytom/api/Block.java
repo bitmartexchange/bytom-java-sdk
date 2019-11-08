@@ -56,7 +56,7 @@ public class Block {
         Integer blockCount =
                 client.requestGet("get-block-count", null, "block_count", Integer.class);
 
-        logger.info("get-block-count:"+blockCount);
+        logger.debug("get-block-count:"+blockCount);
         return blockCount;
     }
 
@@ -110,8 +110,8 @@ public class Block {
 
             Block block = client.request("get-block", this, Block.class);
 
-            logger.info("get-block:");
-            logger.info(block.toJson());
+            logger.debug("get-block:");
+            logger.debug(block.toJson());
 
             return block;
         }
