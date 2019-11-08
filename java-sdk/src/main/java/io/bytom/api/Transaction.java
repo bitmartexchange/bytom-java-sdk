@@ -241,8 +241,8 @@ public class Transaction {
 
             Transaction transaction = client.request("get-transaction", req, Transaction.class);
 
-            logger.info("get-transaction:");
-            logger.info(transaction.toJson());
+            logger.debug("get-transaction:");
+            logger.debug(transaction.toJson());
 
             return transaction;
         }
